@@ -6,7 +6,7 @@ const UserModel = require("../models/UserModel");
 const getAllUsers = async (req, res, next) => {
   let allUsers = [];
   try {
-    allUsers = await UserModel.find({},'-password');
+    allUsers = await UserModel.find({}, "-password");
   } catch (err) {
     const error = new HttpError("Something went wrong", 500);
     return next(error);
@@ -21,7 +21,7 @@ const registerUser = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError("Invalid input passed", 422));
   }
-  const { email, password, name,family } = req.body;
+  const { email, password, name, family } = req.body;
   let isExists;
   try {
     isExists = await UserModel.findOne({ email });
@@ -37,7 +37,7 @@ const registerUser = async (req, res, next) => {
     family,
     email,
     password,
-    image: "test",
+    image: req.file.path,
     places: [],
   });
   try {
@@ -68,7 +68,7 @@ const loginUser = async (req, res, next) => {
   if (user && user.password !== password) {
     return next(new HttpError("Password is Wrong", 401));
   }
-  res.status(200).json({ user });
+  res.status(200).json({ user: user.toObject({ getters: true }) });
 };
 
 exports.getAllUsers = getAllUsers;

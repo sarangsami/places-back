@@ -7,6 +7,7 @@ const {
   patchPlaceById,
   deletePlaceById,
 } = require("../controllers/placesController");
+const fileUpload = require("../middlewares/fileUpload");
 
 const router = express.Router();
 
@@ -16,10 +17,10 @@ router.get("/user/:userId", getPlaceByUserId);
 
 router.post(
   "/",
+  fileUpload.single("image"),
   [
     check("title").not().isEmpty(),
     check("description").isLength({ min: 5 }),
-    check("image").not().isEmpty(),
     check("address").not().isEmpty(),
   ],
   postNewPlace

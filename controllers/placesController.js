@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator");
+const fs = require("fs");
 const mongoose = require("mongoose");
 const HttpError = require("../models/httpError");
 const PlaceModel = require("../models/PlaceModel");
@@ -26,19 +27,18 @@ const getPlaceById = async (req, res, next) => {
 const getPlaceByUserId = async (req, res, next) => {
   const { userId } = req.params;
   let userPlaces = [];
-  let isUserExists
+  let isUserExists;
   try {
-    isUserExists = await UserModel.findById(userId)
-    
+    isUserExists = await UserModel.findById(userId);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return next(new HttpError("This User Is Not Exists", 404));
   }
-  if(isUserExists){
+  if (isUserExists) {
     try {
       userPlaces = await UserModel.findById(userId).populate("places");
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return next(new HttpError("Something went wrong, try again", 500));
     }
   }
@@ -47,9 +47,9 @@ const getPlaceByUserId = async (req, res, next) => {
     return next(new HttpError("User not found", 404));
   }
   res.json({
-    userPlaces: userPlaces.places.reverse().map((place) =>
-      place.toObject({ getters: true })
-    ),
+    userPlaces: userPlaces.places
+      .reverse()
+      .map((place) => place.toObject({ getters: true })),
   });
 };
 
@@ -58,12 +58,12 @@ const postNewPlace = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError("Invalid input passed", 422));
   }
-  const { title, description, image, coordinates, address, creator } = req.body;
+  const { title, description, coordinates, address, creator } = req.body;
   const newPlace = new PlaceModel({
     title,
     description,
-    image,
-    location: coordinates,
+    image: req.file.path,
+    location: JSON.parse(coordinates),
     address,
     creator,
   });
@@ -85,7 +85,6 @@ const postNewPlace = async (req, res, next) => {
     await user.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
-    console.log(err);
     const error = new HttpError("Creating place failed, please try again", 500);
     return next(error);
   }
@@ -131,6 +130,7 @@ const deletePlaceById = async (req, res, next) => {
   if (!place) {
     return next(new HttpError("Place not found", 404));
   }
+  const placeImage = place.image;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -142,6 +142,9 @@ const deletePlaceById = async (req, res, next) => {
     const error = new HttpError("Something went wrong", 500);
     return next(error);
   }
+  fs.unlink(placeImage, (err) => {
+    console.log(err);
+  });
   res
     .status(200)
     .json({ message: `Place with name of ${place.title} has been deleted.` });

@@ -5,6 +5,7 @@ const {
   registerUser,
   loginUser,
 } = require("../controllers/userController");
+const fileUpload = require("../middlewares/fileUpload");
 
 const router = express.Router();
 
@@ -12,6 +13,7 @@ router.get("/", getAllUsers);
 
 router.post(
   "/register",
+  fileUpload.single("image"),
   [
     check("name").not().isEmpty(),
     check("family").not().isEmpty(),
