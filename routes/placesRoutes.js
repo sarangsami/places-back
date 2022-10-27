@@ -7,13 +7,14 @@ const {
   patchPlaceById,
   deletePlaceById,
 } = require("../controllers/placesController");
+const authCheck = require("../middlewares/authCheck");
 const fileUpload = require("../middlewares/fileUpload");
 
 const router = express.Router();
 
 router.get("/:placeId", getPlaceById);
-
 router.get("/user/:userId", getPlaceByUserId);
+router.use(authCheck)
 
 router.post(
   "/",
