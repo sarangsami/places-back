@@ -36,7 +36,7 @@ app.use((error, req, res, next) => {
 mongoose
   // .connect("mongodb://localhost:27017/Places")
   .connect(
-    "mongodb+srv://sarang:N2AuZN2tAfuwN9ps@cluster0.fmmxuub.mongodb.net/places?retryWrites=true&w=majority"
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.fmmxuub.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
   )
   .then(() => {
     app.listen(8080);

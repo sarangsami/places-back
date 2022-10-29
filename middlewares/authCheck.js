@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const HttpError = require("../models/httpError");
+const { JWT_KEY } = require("../utils/utils");
 
 const authCheck = (req, res, next) => {
   if (req.method === "OPTIONS") {
@@ -8,7 +9,7 @@ const authCheck = (req, res, next) => {
   }
   try {
     const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, "Better_to_have_random_key");
+    const decodedToken = jwt.verify(token, JWT_KEY);
     req.userData = { userId: decodedToken.userId };
     next();
     if (!token) {

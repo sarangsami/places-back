@@ -47,8 +47,8 @@ const getPlaceByUserId = async (req, res, next) => {
     return next(new HttpError("User not found", 404));
   }
   res.json({
-    userPlaces: userPlaces.places
-      .reverse()
+    userPlaces: userPlaces?.places
+      ?.reverse()
       .map((place) => place.toObject({ getters: true })),
   });
 };
@@ -58,24 +58,27 @@ const postNewPlace = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError("Invalid input passed", 422));
   }
-  const { title, description, coordinates, address, creator } = req.body;
+  const { title, description, coordinates, address } = req.body;
   const newPlace = new PlaceModel({
     title,
     description,
     image: req.file.path,
     location: JSON.parse(coordinates),
     address,
-    creator,
+    creator:req.userData.userId,
   });
 
   let user;
   try {
-    user = await UserModel.findById(creator);
+    user = await UserModel.findById(req.userData.userId);
   } catch (err) {
     return next(new HttpError("Something went wrong", 500));
   }
   if (!user) {
     return next(new HttpError("User Not Exists", 404));
+  }
+  if (user.id.toString() !== req.userData.userId) {
+    return next(new HttpError("You are not Allowed to do this", 401));
   }
   try {
     const sess = await mongoose.startSession();
@@ -109,6 +112,10 @@ const patchPlaceById = async (req, res, next) => {
   place.title = title;
   place.description = description;
 
+  if (place.creator.toString() !== req.userData.userId) {
+    return next(new HttpError("You are not Allowed to do this", 401));
+  }
+
   try {
     await place.save();
   } catch (err) {
@@ -129,6 +136,9 @@ const deletePlaceById = async (req, res, next) => {
   }
   if (!place) {
     return next(new HttpError("Place not found", 404));
+  }
+  if (place.creator.id !== req.userData.userId) {
+    return next(new HttpError("You are not Allowed to do this", 401));
   }
   const placeImage = place.image;
   try {

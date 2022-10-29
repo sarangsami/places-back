@@ -3,6 +3,7 @@ const bcryptjs = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/httpError");
 const UserModel = require("../models/UserModel");
+const { JWT_KEY } = require("../utils/utils");
 
 const getAllUsers = async (req, res, next) => {
   let allUsers = [];
@@ -65,7 +66,7 @@ const registerUser = async (req, res, next) => {
   try {
     token = jwt.sign(
       { userId: newUser.id, email: newUser.email },
-      "Better_to_have_random_key",
+      JWT_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {
@@ -112,7 +113,7 @@ const loginUser = async (req, res, next) => {
   try {
     token = jwt.sign(
       { userId: user.id, email: user.email },
-      "Better_to_have_random_key",
+      JWT_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {
